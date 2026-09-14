@@ -1,23 +1,74 @@
-def validate_element(element):
-    return hasattr(element, 'content') and isinstance(element.content, str)
+"""Validation and plain-text rendering utilities for screenplay elements."""
 
-def format_element(element):
-    if element.__class__.__name__ == "Slugline":
-        return f"\n\n{element.content.upper()}\n"
-    elif element.__class__.__name__ == "Action":
-        return f"{element.content}\n"
-    elif element.__class__.__name__ == "Character":
-        return f"\n\t\t\t\t\t{element.content.upper()}\n"
-    elif element.__class__.__name__ == "Dialogue":
-        formatted = ""
+from __future__ import annotations
+
+from textwrap import fill
+
+from screenplay_elements import (
+    Action,
+    Character,
+    Dialogue,
+    ScreenplayElement,
+    Slugline,
+    Transition,
+)
+
+CHARACTER_INDENT = 22
+PARENTHETICAL_INDENT = 16
+DIALOGUE_INDENT = 12
+ACTION_WIDTH = 65
+DIALOGUE_WIDTH = 42
+
+
+def validate_element(
+    element: object,
+    *,
+    raise_on_error: bool = False,
+) -> bool:
+    """Validate that an object is a supported, non-empty screenplay element."""
+    valid = isinstance(element, ScreenplayElement) and bool(element.content.strip())
+    if not valid and raise_on_error:
+        raise TypeError("element must be a non-empty ScreenplayElement instance")
+    return valid
+
+
+def _indent_block(text: str, spaces: int, width: int) -> str:
+    wrapped = fill(
+        text.strip(),
+        width=width,
+        subsequent_indent="",
+        break_long_words=False,
+        break_on_hyphens=False,
+    )
+    prefix = " " * spaces
+    return "\n".join(f"{prefix}{line}" for line in wrapped.splitlines())
+
+
+def format_element(element: ScreenplayElement) -> str:
+    """Render one screenplay element using consistent screenplay spacing rules."""
+    validate_element(element, raise_on_error=True)
+
+    if isinstance(element, Slugline):
+        return f"{element.content.upper()}\n\n"
+
+    if isinstance(element, Action):
+        return f"{fill(element.content, width=ACTION_WIDTH)}\n\n"
+
+    if isinstance(element, Character):
+        return f"{' ' * CHARACTER_INDENT}{element.cue}\n"
+
+    if isinstance(element, Dialogue):
+        pieces: list[str] = []
         if element.parenthetical:
-            formatted += f"\t\t\t\t({element.parenthetical})\n"
-        vo_os = ""
-        if element.vo:
-            vo_os = " (V.O.)"
-        elif element.os:
-            vo_os = " (O.S.)"
-        formatted += f"\t\t\t{element.content}{vo_os}\n"
-        return formatted
-    else:
-        return f"{element.content}\n"
+            pieces.append(
+                f"{' ' * PARENTHETICAL_INDENT}({element.parenthetical})\n"
+            )
+        pieces.append(
+            f"{_indent_block(element.content, DIALOGUE_INDENT, DIALOGUE_WIDTH)}\n\n"
+        )
+        return "".join(pieces)
+
+    if isinstance(element, Transition):
+        return f"{element.content.upper():>65}\n\n"
+
+    raise TypeError(f"Unsupported screenplay element: {type(element).__name__}")
