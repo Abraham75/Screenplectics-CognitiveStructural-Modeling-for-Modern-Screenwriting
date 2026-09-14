@@ -60,7 +60,9 @@ class Dialogue(ScreenplayElement):
     parenthetical: str | None = None
 
     def __post_init__(self) -> None:
-        super().__post_init__()
+        # Explicit base call is used because dataclass(slots=True) creates a new
+        # class object and zero-argument super() is not reliable in that mode.
+        ScreenplayElement.__post_init__(self)
         if self.parenthetical:
             cleaned = self.parenthetical.strip().strip("()")
             object.__setattr__(self, "parenthetical", cleaned or None)
