@@ -54,5 +54,16 @@ class ScreenplayOrchestratorTests(unittest.TestCase):
         self.assertIn("| Task | Role | Depends on | Required output |", rendered)
 
 
+    def test_audience_architecture_precedes_analysis(self):
+        plan = self.orchestrator.create_plan(
+            "Develop an audience-validated micro-drama",
+            requires_research=True,
+            requires_audience_validation=True,
+        )
+        audience = plan.task("audience_architecture")
+        analysis = plan.task("analysis")
+        self.assertIn("research", audience.depends_on)
+        self.assertIn("audience_architecture", analysis.depends_on)
+
 if __name__ == "__main__":
     unittest.main()
