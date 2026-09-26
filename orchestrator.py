@@ -25,7 +25,7 @@ class ScreenplayOrchestrator:
         deliverable: str = "decision-ready screenplay development package",
         deadline: str | None = None,
         requires_research: bool = False,
-        requires_technical_work: bool = True,
+        requires_technical_work: bool = True,\n        requires_audience_validation: bool = False,
     ) -> OrchestrationPlan:
         if not request or not request.strip():
             raise ValueError("request must contain a non-empty objective")
@@ -49,7 +49,36 @@ class ScreenplayOrchestrator:
                 )
             )
 
-        analysis_dependencies = ("research",) if requires_research else ()
+        if requires_audience_validation:
+            audience_deps = ("research",) if requires_research else ()
+            tasks.append(
+                TaskBrief(
+                    task_id="audience_architecture",
+                    role=AgentRole.ANALYST,
+                    objective="Define target audience hypotheses and pre-production signal experiments.",
+                    context=request,
+                    inputs=(request, "market evidence when available"),
+                    required_output=(
+                        "Audience hypotheses; falsification criteria; experiment ladder; "
+                        "metrics; thresholds; provenance; caveats; stop/iterate/advance criteria"
+                    ),
+                    quality_bar=(
+                        "Separate attention, retention, intent, conversion, payment, and advocacy. "
+                        "Never equate views with willingness to pay."
+                    ),
+                    constraints=(
+                        "Pre-register thresholds before interpreting results.",
+                        "Do not claim commercial certainty from audience signals.",
+                        "Preserve creator control over narrative decisions.",
+                    ),
+                    depends_on=audience_deps,
+                )
+            )
+
+        analysis_dependencies = tuple(
+            x for x in ("research" if requires_research else None,
+                        "audience_architecture" if requires_audience_validation else None) if x
+        )
         tasks.append(
             TaskBrief(
                 task_id="analysis",
@@ -78,7 +107,7 @@ class ScreenplayOrchestrator:
                 )
             )
 
-        writer_dependencies = ["analysis"]
+        writer_dependencies = ["analysis"]\n        if requires_audience_validation:\n            writer_dependencies.append("audience_architecture")
         if requires_technical_work:
             writer_dependencies.append("technical")
         tasks.append(
@@ -95,7 +124,7 @@ class ScreenplayOrchestrator:
             )
         )
 
-        review_dependencies = ["analysis", "writing"]
+        review_dependencies = ["analysis", "writing"]\n        if requires_audience_validation:\n            review_dependencies.append("audience_architecture")
         if requires_technical_work:
             review_dependencies.append("technical")
         if requires_research:
@@ -137,7 +166,7 @@ class ScreenplayOrchestrator:
             constraints=[
                 "Label material claims as Verified, Inferred, Assumed, or Opinion.",
                 "Every specialist handoff must state confidence, unresolved questions, and risks.",
-                "High-stakes subject matter requires qualified human review.",
+                "High-stakes subject matter requires qualified human review.",\n                "Audience signals inform development and financing decisions; they do not guarantee demand or recoupment.",
             ],
             success_criteria=[
                 "Every workstream has a clear owner and artifact.",
