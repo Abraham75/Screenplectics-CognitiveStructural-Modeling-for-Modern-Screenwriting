@@ -45,6 +45,44 @@ Screenplay Domain Layer
 - Preservation of unresolved disagreement
 - Human-review warning for high-stakes domains
 
+## Audience Architecture
+
+Screenplectics now treats audience evidence as a development input rather than a post-production marketing afterthought. The `audience_architecture.py` module models:
+
+- **Audience hypotheses** — a defined segment, human tension, story promise, expected behavior, and explicit falsification condition.
+- **Signal experiments** — low-cost tests performed before major production commitments.
+- **Signal hierarchy** — attention, retention, intent, conversion, payment, and advocacy are stored as different evidence classes rather than collapsed into "engagement."
+- **Provenance** — observations retain source, sample size, date, metric, and caveats.
+- **Evidence gates** — projects can iterate from inexpensive story/artifact tests toward stronger behavioral and payment evidence.
+
+A key design rule is that **attention is not payment intent**. High views, likes, or completion rates can support a demand hypothesis, but they do not prove willingness to buy a ticket, subscribe, preorder, or otherwise spend. Screenplectics therefore uses audience evidence to improve development, packaging, financing conversations, and distribution strategy without representing those signals as guaranteed recoupment.
+
+The Audience Architect function can be inserted into an orchestration plan before general analysis. Its output then becomes an input to narrative/business analysis, writing, red-team review, and final synthesis. Creative authority remains with the human creator: audience evidence informs choices rather than automatically rewriting the story.
+
+### Default experiment ladder
+
+```text
+Audience hypothesis
+      |
+      v
+Attention test
+      |
+      v
+Retention test
+      |
+      v
+Intent test
+      |
+      v
+Conversion test
+      |
+      v
+Payment evidence
+      |
+      v
+Development / packaging / financing decision
+```
+
 ## Screenplay Formatting Features
 
 The screenplay subsystem supports:
@@ -78,7 +116,7 @@ The renderer uses consistent screenplay spacing and indentation conventions whil
 
 ```text
 .
-├── orchestration_models.py   # Typed roles, task briefs, plans, handoff contracts
+├── audience_architecture.py  # Audience hypotheses, experiments, evidence signals\n├── test_audience_architecture.py # Audience architecture tests\n├── orchestration_models.py   # Typed roles, task briefs, plans, handoff contracts
 ├── orchestrator.py           # Task graph and routing engine
 ├── test_orchestrator.py      # Unit tests for orchestration behavior
 ├── screenplay_elements.py    # Canonical screenplay domain objects
@@ -159,7 +197,7 @@ print(orchestrator.render_markdown(plan))
 Run the orchestration unit tests with the Python standard library:
 
 ```bash
-python -m unittest test_orchestrator.py
+python -m unittest test_orchestrator.py test_audience_architecture.py
 ```
 
 ## Current Design Boundary
@@ -171,7 +209,7 @@ This distinction is intentional: orchestration, provenance, evaluation, and hand
 ## Roadmap
 
 - Provider-neutral agent execution interface
-- Evidence registry with claim-level provenance
+- Persistent audience experiment registry and project-level evidence dashboard\n- Evidence registry with claim-level provenance
 - Persistent change log across review cycles
 - Screenplay beat and character-arc models
 - FDX / Final Draft export
